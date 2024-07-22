@@ -13,13 +13,13 @@ func main() {
 	l, err := net.Listen("tcp", ":8080")
 	checkErr(err)
 	defer l.Close()
+	fmt.Println("Listening on localhost:8080")
 	for {
 		conn, err := l.Accept()
 		checkErr(err)
 		go handleConnection(conn)
 	}
 
-	fmt.Println("Listening on localhost:8080")
 }
 
 func handleConnection(conn net.Conn) {
