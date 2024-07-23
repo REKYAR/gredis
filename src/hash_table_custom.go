@@ -10,8 +10,8 @@ import (
 	"sync"
 )
 
-const DEFAULT_HASHTAB_SIZE = 128
-const DEFAULT_HASHTAB_WORKER_NUMBER = 128
+const DEFAULT_HASHTAB_SIZE = 64
+const DEFAULT_HASHTAB_WORKER_NUMBER = 512
 
 type HMap struct {
 	hasher *Hasher
