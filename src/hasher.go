@@ -27,11 +27,10 @@ func (h *Hasher) CloneHasher() *Hasher {
 }
 
 func (h *Hasher) Init() {
-	h.hasher.SetSeed(maphash.MakeSeed())
+	seed := maphash.MakeSeed()
+	h.hasher.SetSeed(seed)
 }
 
 func NewHasher() *Hasher {
-	return &Hasher{
-		hasher: maphash.Hash{},
-	}
+	return &Hasher{}
 }

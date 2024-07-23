@@ -67,8 +67,9 @@ func newHashtab(size uint) (*HashTab, error) {
 		return nil, errors.New("hash table size must be a power of two")
 	}
 	h_ptr := &HashTab{
-		nodes: make([]*HashTabNode, size),
-		size:  size,
+		nodes:  make([]*HashTabNode, size),
+		size:   size,
+		hasher: NewHasher(),
 	}
 	for i := uint(0); i < size; i++ {
 		h_ptr.nodes[i] = &HashTabNode{
@@ -79,18 +80,18 @@ func newHashtab(size uint) (*HashTab, error) {
 	return h_ptr, nil
 }
 
-func (hmap *HMap) Insert(storable *Storable) {
-	idx := hmap.hasher.Hash((*storable).GetKey()) % hmap.size
+func (hmap *HMap) Insert(storable Storable) {
+	idx := hmap.hasher.Hash(storable.GetKey()) % hmap.size
 	tab := hmap.hts[idx]
 	tab.insert(storable)
 }
 
-func (tab *HashTab) insert(storable *Storable) {
-	idx := tab.hasher.Hash((*storable).GetKey()) % tab.size
+func (tab *HashTab) insert(storable Storable) {
+	idx := tab.hasher.Hash(storable.GetKey()) % tab.size
 	node := tab.nodes[idx]
 	// Properly link the new node into the chain
 	tab.rwmx.Lock()
-	node.members = append(node.members, storable)
+	node.members = append(node.members, &storable)
 	tab.rwmx.Unlock()
 }
 

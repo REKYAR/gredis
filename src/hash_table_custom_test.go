@@ -3,9 +3,10 @@ package main
 import (
 	"fmt"
 	"log"
+	"testing"
 )
 
-func main() {
+func TestHashMap(t *testing.T) {
 	// Initialize hash map
 	hMap, err := NewHMap(0, 0)
 	if err != nil {
