@@ -112,3 +112,22 @@ func (tab *HashTab) lookup(key string) (*HashTabNode, error) {
 	}
 	return nil, errors.New("key not found")
 }
+
+func (tab *HMap) Delete(key string) error {
+	idx := tab.hasher.Hash(key) % tab.size
+	return tab.hts[idx].delete(key)
+}
+
+func (tab *HashTab) delete(key string) error {
+	idx := tab.hasher.Hash(key) % tab.size
+	node := tab.nodes[idx]
+	tab.rwmx.Lock()
+	defer tab.rwmx.Unlock()
+	for i, member := range node.members {
+		if (*member).GetKey() == key {
+			node.members = append(node.members[:i], node.members[i+1:]...)
+			return nil
+		}
+	}
+	return errors.New("key not found")
+}
