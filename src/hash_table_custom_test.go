@@ -9,7 +9,7 @@ import (
 
 func TestHashMap(t *testing.T) {
 	// Initialize hash map
-	hMap, err := NewHMap(0, 0)
+	hMap, err := NewHMap(1)
 	if err != nil {
 		log.Fatalf("Failed to create HMap: %v", err)
 	}
@@ -54,7 +54,7 @@ func TestHashMap(t *testing.T) {
 
 func TestHashMapConcurrent(t *testing.T) {
 	// Initialize hash map
-	hMap, err := NewHMap(0, 0)
+	hMap, err := NewHMap(1)
 	if err != nil {
 		log.Fatalf("Failed to create HMap: %v", err)
 	}
