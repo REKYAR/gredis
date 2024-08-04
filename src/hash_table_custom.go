@@ -26,27 +26,13 @@ type HMap struct {
 	size   uint        // cnt of node arrays
 }
 
-// type HashTab struct {
-// 	hasher *Hasher
-// 	rwmx   sync.RWMutex
-// 	nodes  []*HashTabNode // node array
-// 	size   uint
-// }
-
-// type HashTabNode struct {
-// 	members []*Storable // array of Storables we don't expect to resize it frequently, will be appended to on demand
-// }
-
 type HMapNode struct {
 	rwmx    sync.RWMutex
 	members []*Storable // array of Storables we don't expect to resize it frequently, will be appended to on demand
 }
 
 func NewHMap(HashMapSize uint) (*HMap, error) {
-	// if HashMapWorkerNuber == 0 {
-	// 	HashMapWorkerNuber = DEFAULT_HASHTAB_WORKER_NUMBER
 
-	// }
 	if HashMapSize == 0 {
 		HashMapSize = DEFAULT_HMAP_SIZE
 	}
@@ -74,25 +60,6 @@ func newHmapNode() (*HMapNode, error) {
 	return h_ptr, nil
 }
 
-// func newHashtab(size uint) (*HashTab, error) {
-// 	// Corrected the condition to check if size is not a power of two
-// 	if size == 0 || (size&(size-1)) != 0 {
-// 		return nil, errors.New("hash table size must be a power of two")
-// 	}
-// 	h_ptr := &HashTab{
-// 		nodes:  make([]*HashTabNode, size),
-// 		size:   size,
-// 		hasher: NewHasher(),
-// 	}
-// 	for i := uint(0); i < size; i++ {
-// 		h_ptr.nodes[i] = &HashTabNode{
-// 			members: make([]*Storable, 0),
-// 		}
-
-// 	}
-// 	return h_ptr, nil
-// }
-
 func (hmap *HMap) Insert(storable Storable) {
 	idx := hmap.hasher.Hash(storable.GetKey()) % hmap.size
 	tab := hmap.hts[idx]
@@ -100,15 +67,6 @@ func (hmap *HMap) Insert(storable Storable) {
 	tab.members = append(tab.members, &storable)
 	tab.rwmx.Unlock()
 }
-
-// func (tab *HashTab) insert(storable Storable) {
-// 	idx := tab.hasher.Hash(storable.GetKey()) % tab.size
-// 	node := tab.nodes[idx]
-// 	// Properly link the new node into the chain
-// 	tab.rwmx.Lock()
-// 	node.members = append(node.members, &storable)
-// 	tab.rwmx.Unlock()
-// }
 
 func (hmap *HMap) Lookup(key string) (*Storable, error) {
 	idx := hmap.hasher.Hash(key) % hmap.size
@@ -122,19 +80,6 @@ func (hmap *HMap) Lookup(key string) (*Storable, error) {
 	}
 	return nil, errors.New("key not found")
 }
-
-// func (tab *HashTab) lookup(key string) (*HashTabNode, error) {
-// 	idx := tab.hasher.Hash(key) % tab.size
-// 	node := tab.nodes[idx]
-// 	tab.rwmx.RLock()
-// 	defer tab.rwmx.RUnlock()
-// 	for _, member := range node.members {
-// 		if (*member).GetKey() == key {
-// 			return node, nil
-// 		}
-// 	}
-// 	return nil, errors.New("key not found")
-// }
 
 func (htab *HMap) Delete(key string) error {
 	idx := htab.hasher.Hash(key) % htab.size
@@ -150,17 +95,3 @@ func (htab *HMap) Delete(key string) error {
 	}
 	return errors.New("key not found")
 }
-
-// func (tab *HashTab) delete(key string) error {
-// 	idx := tab.hasher.Hash(key) % tab.size
-// 	node := tab.nodes[idx]
-// 	tab.rwmx.Lock()
-// 	defer tab.rwmx.Unlock()
-// 	for i, member := range node.members {
-// 		if (*member).GetKey() == key {
-// 			node.members = append(node.members[:i], node.members[i+1:]...)
-// 			return nil
-// 		}
-// 	}
-// 	return errors.New("key not found")
-// }

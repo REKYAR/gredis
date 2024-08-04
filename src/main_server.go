@@ -1,19 +1,25 @@
 package main
 
 import (
+	"encoding/binary"
 	"fmt"
-	"io"
 	"net"
 )
 
-const MX_REQ_LEN = 4096
-const MX_READ_LEN = 512
+const (
+	MX_REQ_LEN  = 4096
+	MX_READ_LEN = 512
+	host        = "localhost"
+	port        = 8080
+)
+
+var supported_protocol_versions = [...]uint64{1}
 
 func main() {
-	l, err := net.Listen("tcp", ":8080")
+	l, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	checkErr(err)
 	defer l.Close()
-	fmt.Println("Listening on localhost:8080")
+	fmt.Println("Listening on", fmt.Sprintf("%s:%d", host, port))
 	for {
 		conn, err := l.Accept()
 		checkErr(err)
@@ -23,24 +29,29 @@ func main() {
 }
 
 func handleConnection(conn net.Conn) {
-	recvBuf := make([]byte, MX_REQ_LEN)
-	tmpBuf := make([]byte, MX_READ_LEN)
+
 	defer conn.Close()
-	//for {
-	for {
-		n, err := conn.Read(tmpBuf)
-		if err != nil {
-			if err != io.EOF {
-				checkErr(err)
-			} else {
-				break
-			}
-		}
-		recvBuf = append(recvBuf, tmpBuf[:n]...)
+
+	// Read protocol version (uint64)
+	var version uint64
+	err := binary.Read(conn, binary.BigEndian, &version)
+	if err != nil {
+		checkErr(err)
+		return
 	}
-	print(string(recvBuf) + "\n")
-	//process recvBuff here
-	command_array := parse_req(string(recvBuf))
-	execute_command(command_array)
-	//}
+	handled := false
+	for _, v := range supported_protocol_versions {
+		if version == v {
+			handled = true
+			fmt.Println("Handled version", version)
+			conn.Write([]byte(fmt.Sprintf("Handled version %d", version)))
+			break
+		}
+	}
+	if !handled {
+		fmt.Println("Unsupported protocol version: ", version)
+		conn.Write([]byte(fmt.Sprintf("Unsupported protocol version: %d", version)))
+	}
+
+	//TODO RESPOND TO CLIENT
 }

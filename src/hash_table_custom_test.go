@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-	"log"
 	"sync"
 	"testing"
 )
@@ -11,7 +9,7 @@ func TestHashMap(t *testing.T) {
 	// Initialize hash map
 	hMap, err := NewHMap(1)
 	if err != nil {
-		log.Fatalf("Failed to create HMap: %v", err)
+		t.Fatalf("Failed to create HMap: %v", err)
 	}
 
 	// Insert elements
@@ -23,31 +21,27 @@ func TestHashMap(t *testing.T) {
 
 	// Lookup elements
 	for _, key := range keys {
-		node, err := hMap.Lookup(key)
-		if err != nil {
-			log.Printf("Lookup failed for key %s: %v", key, err)
-		} else {
-			fmt.Printf("Found key %s in node: %v\n", key, node)
+		if _, err := hMap.Lookup(key); err != nil {
+			t.Errorf("Lookup failed for key %s: %v", key, err)
 		}
+	}
+
+	// Test failed lookup
+	if _, err := hMap.Lookup("nonexistent"); err == nil {
+		t.Errorf("Expected lookup to fail for nonexistent key")
 	}
 
 	// Delete elements
 	for _, key := range keys {
-		err := hMap.Delete(key)
-		if err != nil {
-			log.Printf("Delete failed for key %s: %v", key, err)
-		} else {
-			fmt.Printf("Deleted key %s\n", key)
+		if err := hMap.Delete(key); err != nil {
+			t.Errorf("Delete failed for key %s: %v", key, err)
 		}
 	}
 
 	// Lookup elements again to confirm deletion
 	for _, key := range keys {
-		_, err := hMap.Lookup(key)
-		if err != nil {
-			fmt.Printf("Confirmed deletion of key %s\n", key)
-		} else {
-			log.Printf("Key %s was not deleted properly", key)
+		if _, err := hMap.Lookup(key); err == nil {
+			t.Errorf("Key %s was not deleted properly", key)
 		}
 	}
 }
@@ -56,7 +50,7 @@ func TestHashMapConcurrent(t *testing.T) {
 	// Initialize hash map
 	hMap, err := NewHMap(1)
 	if err != nil {
-		log.Fatalf("Failed to create HMap: %v", err)
+		t.Fatalf("Failed to create HMap: %v", err)
 	}
 
 	keys := []string{"key1", "key2", "key3", "key4", "key5", "key6", "key7", "key8", "key9", "key10"}
@@ -78,11 +72,8 @@ func TestHashMapConcurrent(t *testing.T) {
 	for _, key := range keys {
 		go func(key string) {
 			defer wg.Done()
-			node, err := hMap.Lookup(key)
-			if err != nil {
-				log.Printf("Lookup failed for key %s: %v", key, err)
-			} else {
-				fmt.Printf("Found key %s in node: %v\n", key, node)
+			if _, err := hMap.Lookup(key); err != nil {
+				t.Errorf("Lookup failed for key %s: %v", key, err)
 			}
 		}(key)
 	}
@@ -93,11 +84,8 @@ func TestHashMapConcurrent(t *testing.T) {
 	for _, key := range keys {
 		go func(key string) {
 			defer wg.Done()
-			err := hMap.Delete(key)
-			if err != nil {
-				log.Printf("Delete failed for key %s: %v", key, err)
-			} else {
-				fmt.Printf("Deleted key %s\n", key)
+			if err := hMap.Delete(key); err != nil {
+				t.Errorf("Delete failed for key %s: %v", key, err)
 			}
 		}(key)
 	}
@@ -108,11 +96,8 @@ func TestHashMapConcurrent(t *testing.T) {
 	for _, key := range keys {
 		go func(key string) {
 			defer wg.Done()
-			_, err := hMap.Lookup(key)
-			if err != nil {
-				fmt.Printf("Confirmed deletion of key %s\n", key)
-			} else {
-				log.Printf("Key %s was not deleted properly", key)
+			if _, err := hMap.Lookup(key); err == nil {
+				t.Errorf("Key %s was not deleted properly", key)
 			}
 		}(key)
 	}
